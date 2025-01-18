@@ -4,8 +4,8 @@ from loguru import logger
 from quixstreams import Application
 
 from src.kraken_api import KrakenWebsocketTradeAPI
-from src import config
-
+# from src import config
+from src.config import config
 
 def produce_trades(
     kafka_broker_address: str,
