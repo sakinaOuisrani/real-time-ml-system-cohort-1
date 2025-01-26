@@ -3,6 +3,7 @@ import json
 from quixstreams import Application
 
 from src.hopsworks_api import push_data_to_feature_store
+from src.config import config
 
 def kafka_to_feature_store(
         kafka_topic: str,
@@ -51,8 +52,8 @@ def kafka_to_feature_store(
 
 if __name__ == '__main__':
     kafka_to_feature_store(
-        kafka_topic='ohlc',
-        kafka_broker_address='localhost:19092',
-        feature_group_name='ohlc_feature_group',
-        feature_group_version=1,
+        kafka_topic=config.kafka_topic,
+        kafka_broker_address=config.kafka_broker_address,
+        feature_group_name=config.feature_group_name,
+        feature_group_version=config.feature_group_version,
     )
