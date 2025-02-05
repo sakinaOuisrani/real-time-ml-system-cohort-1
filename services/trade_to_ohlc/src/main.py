@@ -2,6 +2,7 @@ from datetime import timedelta
 from loguru import logger
 from quixstreams import Application
 from src.config import config
+from datetime import datetime, timezone
 
 
 def trade_to_ohlc(
@@ -23,11 +24,13 @@ def trade_to_ohlc(
         None
     """
 
+
     app = Application(
         broker_address=kafta_broker_address,
         consumer_group="trade_to_ohlc",
-        auto_offset_reset="earliest",
+        auto_offset_reset="latest", # earliest, latest
     )
+    
 
     # specify the input and output topics
     input_topic = app.topic(kafka_input_topic, value_deserializer="json")
@@ -38,21 +41,25 @@ def trade_to_ohlc(
 
     def initialize_ohlc_candle(value: dict) -> dict:
         """Initialize the OHLC candle with the first trade in the window"""
+
+        value["price"] = float(value["price"])
         return {
             "open": value["price"],
             "high": value["price"],
             "low": value["price"],
             "close": value["price"],
-            "product_id": value["symbol"],
+            "product_id": value["product_id"],
         }
 
     def update_ohlc_candle(ohlc_candle: dict, trade: dict) -> dict:
+        trade["price"] = float(trade["price"])
+        logger.info(f"Updating OHLC candle new trade")
         return {
             "open": ohlc_candle["open"],
             "high": max(ohlc_candle["high"], trade["price"]),
             "low": min(ohlc_candle["low"], trade["price"]),
             "close": trade["price"],
-            "product_id": trade["symbol"],
+            "product_id": trade["product_id"],
         }
 
     sdf = (
@@ -66,7 +73,6 @@ def trade_to_ohlc(
     sdf["low"] = sdf["value"]["low"]
     sdf["close"] = sdf["value"]["close"]
     sdf["product_id"] = sdf["value"]["product_id"]
-
     sdf["timestamp"] = sdf["end"]
 
     sdf = sdf[["timestamp", "product_id", "open", "high", "low", "close"]]
@@ -78,9 +84,12 @@ def trade_to_ohlc(
 
 
 if __name__ == "__main__":
-    trade_to_ohlc(
-        kafka_input_topic=config.kafka_input_topic,
-        kafka_output_topic=config.kafka_output_topic,
-        kafta_broker_address=config.kafka_broker_address,
-        ohlc_window_seconds=config.ohlc_window_seconds,
-    )
+    try :
+        trade_to_ohlc(
+            kafka_input_topic=config.kafka_input_topic,
+            kafka_output_topic=config.kafka_output_topic,
+            kafta_broker_address=config.kafka_broker_address,
+            ohlc_window_seconds=config.ohlc_window_seconds,
+        )
+    except KeyboardInterrupt:
+        logger.info("Stopped, exiting...")

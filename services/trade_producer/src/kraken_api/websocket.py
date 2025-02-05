@@ -41,7 +41,7 @@ class KrakenWebsocketTradeAPI:
         """Gets the trades from the Kraken Websocket API."""
 
         message = self._ws.recv()
-        logger.info('Message received', message)
+        # logger.info('Message received', message)
 
         message = json.loads(message)
 
@@ -52,8 +52,8 @@ class KrakenWebsocketTradeAPI:
             for trade in message['data'] :
                 trades.append({
                     'product_id': trade['symbol'],
-                    'price': trade['price'],
-                    'volume': trade['qty'],
+                    'price': float(trade['price']),
+                    'volume': float(trade['qty']),
                     'timestamp': trade['timestamp']
                 })
             return trades

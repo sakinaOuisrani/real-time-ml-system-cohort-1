@@ -10,6 +10,7 @@ def kafka_to_feature_store(
         kafka_broker_address: str,
         feature_group_name: str,
         feature_group_version: int,
+        buffer_size: int
 ) -> None :
     """Reads ohlc data from the Kafka topic and writes it to the feature store.
     Specifically, it writes the data to the specified feature group.
@@ -24,6 +25,8 @@ def kafka_to_feature_store(
 
     app = Application(broker_address=kafka_broker_address, 
                       consumer_group='kafka_to_feature_store')
+    
+    buffer=[]
 
     # Create Consumer instance
     with app.get_consumer() as consumer:
@@ -39,11 +42,17 @@ def kafka_to_feature_store(
                 continue
             else :
                 ohlc = json.loads(msg.value().decode('utf-8'))
-                push_data_to_feature_store(
-                    feature_group_name=feature_group_name,
-                    feature_group_version=feature_group_version,
-                    data=ohlc
-                )
+
+                buffer.append(ohlc)
+
+                if len(buffer) >= buffer_size:
+                    push_data_to_feature_store(
+                        feature_group_name=feature_group_name,
+                        feature_group_version=feature_group_version,
+                        data=ohlc
+                    )
+                    # reset the buffer
+                    buffer = []
             
             # Store offsets means that the consumer will commit the offset of the 
             # message it just processed to Kafka so that it won't be processed again.
@@ -51,9 +60,14 @@ def kafka_to_feature_store(
 
 
 if __name__ == '__main__':
-    kafka_to_feature_store(
-        kafka_topic=config.kafka_topic,
-        kafka_broker_address=config.kafka_broker_address,
-        feature_group_name=config.feature_group_name,
-        feature_group_version=config.feature_group_version,
-    )
+
+    try :
+        kafka_to_feature_store(
+            kafka_topic=config.kafka_topic,
+            kafka_broker_address=config.kafka_broker_address,
+            feature_group_name=config.feature_group_name,
+            feature_group_version=config.feature_group_version,
+            buffer_size = config.buffer_size
+        )
+    except KeyboardInterrupt :
+        logger.info('Exiting...')

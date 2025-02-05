@@ -13,5 +13,6 @@ class Config(BaseSettings):
     feature_group_name : str = os.environ['FEATURE_GROUP_NAME']
     feature_group_version : int = os.environ['FEATURE_GROUP_VERSION']
     kafka_topic : str = os.environ['KAFKA_TOPIC']
+    buffer_size : int = os.environ['BUFFER_SIZE']
 
 config = Config()

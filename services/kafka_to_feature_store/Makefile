@@ -13,3 +13,6 @@ lint:
 
 format:
 	ruff format .
+
+run-dev:
+	poetry run python src/main.py
