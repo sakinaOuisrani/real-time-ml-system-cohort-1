@@ -28,7 +28,7 @@ def trade_to_ohlc(
     app = Application(
         broker_address=kafta_broker_address,
         consumer_group="trade_to_ohlc",
-        auto_offset_reset="latest", # earliest, latest
+        auto_offset_reset="earliest", # earliest, latest
     )
     
 
@@ -53,7 +53,7 @@ def trade_to_ohlc(
 
     def update_ohlc_candle(ohlc_candle: dict, trade: dict) -> dict:
         trade["price"] = float(trade["price"])
-        logger.info(f"Updating OHLC candle new trade")
+        # logger.info(f"Updating OHLC candle new trade")
         return {
             "open": ohlc_candle["open"],
             "high": max(ohlc_candle["high"], trade["price"]),

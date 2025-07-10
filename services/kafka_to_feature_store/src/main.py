@@ -41,6 +41,7 @@ def kafka_to_feature_store(
                 logger.error(f"Consumer error: {msg.error()}")
                 continue
             else :
+                # Parse the message from kafka as dictionary
                 ohlc = json.loads(msg.value().decode('utf-8'))
 
                 buffer.append(ohlc)

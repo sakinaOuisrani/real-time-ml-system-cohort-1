@@ -48,7 +48,7 @@ class KrakenRestAPI:
                 trades.append({
                     'price': float(trade[0]),
                     'volume': float(trade[1]),
-                    'timestamp': int(trade[2]),
+                    'timestamp': 1000*int(trade[2]),
                     'product_id': self.product_ids[0]
                 })
 
